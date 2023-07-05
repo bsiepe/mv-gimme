@@ -36,7 +36,12 @@ search.paths.ms <- function(obj,
                             ms_allow,
                             ms_tol,
                             hybrid,
-                            dir_prop_cutoff){
+                            dir_prop_cutoff,
+                            rmsea.cut = .05,
+                            srmr.cut = .05,
+                            nnfi.cut = .95,
+                            cfi.cut = .95,
+                            n.excellent = 2){
   
   
   #-----------------------------------------------#
@@ -128,7 +133,12 @@ search.paths.ms <- function(obj,
                                   allow.mult   = TRUE,
                                   ms_tol       = ms_tol,
                                   hybrid       = hybrid,
-                                  dir_prop_cutoff = dir_prop_cutoff)
+                                  dir_prop_cutoff = dir_prop_cutoff,
+                                  rmsea.cut = rmsea.cut,
+                                  srmr.cut = srmr.cut,
+                                  nnfi.cut = nnfi.cut,
+                                  cfi.cut = cfi.cut,
+                                  n.excellent = n.excellent)
           if (!ms_allow)
             add_p     <- highest.mi(mi_list      = mi_list,
                                     indices      = indices,
@@ -139,7 +149,12 @@ search.paths.ms <- function(obj,
                                     allow.mult   = FALSE,
                                     ms_tol       = ms_tol,
                                     hybrid       = hybrid, 
-                                    dir_prop_cutoff = dir_prop_cutoff)
+                                    dir_prop_cutoff = dir_prop_cutoff,
+                                    rmsea.cut = rmsea.cut,
+                                    srmr.cut = srmr.cut,
+                                    nnfi.cut = nnfi.cut,
+                                    cfi.cut = cfi.cut,
+                                    n.excellent = n.excellent)
           
           add_param <- add_p$add_param
           mi_info   <- add_p$mi_list

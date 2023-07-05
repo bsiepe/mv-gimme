@@ -6,7 +6,12 @@
 #' information.
 #' @return Lists associated with coefficients, fit indices, etc.
 #' @keywords internal 
-indiv.search <- function(dat, grp, ind){
+indiv.search <- function(dat, grp, ind, 
+                         rmsea.cut = .05,
+                         srmr.cut = .05,
+                         nnfi.cut = .95,
+                         cfi.cut = .95,
+                         n.excellent = 2){
   
   if (!dat$agg){
     ind$ind_paths   <-  vector("list", dat$n_subj)
@@ -63,7 +68,12 @@ indiv.search <- function(dat, grp, ind){
                              elig_paths   = elig_paths,
                              prop_cutoff  = NULL,
                              n_subj       = 1,
-                             chisq_cutoff = qchisq(.99, 1)
+                             chisq_cutoff = qchisq(.99, 1),
+                             rmsea.cut = rmsea.cut,
+                             srmr.cut = srmr.cut,
+                             nnfi.cut = nnfi.cut,
+                             cfi.cut = cfi.cut,
+                             n.excellent = n.excellent
             )
     
     temp_ind_spec <- ind_spec
@@ -88,7 +98,12 @@ indiv.search <- function(dat, grp, ind){
                                elig_paths   = elig_paths,
                                prop_cutoff  = NULL,
                                n_subj       = 1,
-                               chisq_cutoff = 0)
+                               chisq_cutoff = 0,
+                               rmsea.cut = rmsea.cut,
+                               srmr.cut = srmr.cut,
+                               nnfi.cut = nnfi.cut,
+                               cfi.cut = cfi.cut,
+                               n.excellent = n.excellent)
       ind$ind_paths[[k]] <- ind_spec[[1]][[1]]$add_syntax
       ind$n_ind_paths[k] <- ind_spec[[1]][[1]]$n_paths
       

@@ -1,5 +1,5 @@
-Package: gimme
-Title: Group Iterative Multiple Model Estimation
+Package: mvgimme
+Title: Group Iterative Multiple Model Estimation with multiverse option (experimental)
 Version: 0.7-14
 Date: 2023-06-10
 Author: Stephanie Lane [aut, trl],

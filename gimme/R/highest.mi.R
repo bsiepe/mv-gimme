@@ -25,7 +25,12 @@ highest.mi <- function(mi_list,
                        allow.mult,
                        ms_tol,
                        hybrid,
-                       dir_prop_cutoff){
+                       dir_prop_cutoff,
+                       n.excellent = 2,
+                       rmsea.cut = .05,
+                       srmr.cut = .05,
+                       nnfi.cut = .95,
+                       cfi.cut = .95){
   
   mi  = NULL # appease CRAN check
   sig = NULL # appease CRAN check
@@ -142,7 +147,11 @@ highest.mi <- function(mi_list,
     }
     
     
-    if (count.excellent(indices) >= 2) {
+    if (count.excellent(indices,
+                        rmsea.cut = rmsea.cut,
+                        srmr.cut = srmr.cut,
+                        nnfi.cut = nnfi.cut,
+                        cfi.cut = cfi.cut) >= n.excellent) {
       
       add_param <- NA
       

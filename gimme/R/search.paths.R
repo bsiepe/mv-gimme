@@ -37,7 +37,12 @@ search.paths <- function(base_syntax,
                          ms_allow = FALSE,
                          ms_tol   = 1e-6,
                          hybrid = F,
-                         dir_prop_cutoff = 0){
+                         dir_prop_cutoff = 0,
+                         rmsea.cut = .05,
+                         srmr.cut = .05,
+                         nnfi.cut = .95,
+                         cfi.cut = .95,
+                         n.excellent = 2){
   
   ####################################
   # ind search
@@ -99,7 +104,12 @@ search.paths <- function(base_syntax,
       ms_allow,
       ms_tol, 
       hybrid,
-      dir_prop_cutoff
+      dir_prop_cutoff,
+      rmsea.cut = rmsea.cut,
+      srmr.cut = srmr.cut,
+      nnfi.cut = nnfi.cut,
+      cfi.cut = cfi.cut,
+      n.excellent = n.excellent
     )
     
     history[[cnt]] <- obj

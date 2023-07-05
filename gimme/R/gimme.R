@@ -268,7 +268,12 @@ gimmeSEM <- gimme <- function(data             = NULL,
                               hybrid           = FALSE,
                               VAR              = FALSE,
                               dir_prop_cutoff  = 0,
-                              ordered          = NULL){          
+                              ordered          = NULL,
+                              rmsea.cut = .05,
+                              srmr.cut = .05,
+                              nnfi.cut = .95,
+                              cfi.cut = .95,
+                              n.excellent = 2){          
   
   # satisfy CRAN checks
   ind     = NULL
@@ -627,9 +632,19 @@ gimmeSEM <- gimme <- function(data             = NULL,
   
     # 2.19.2019 kmg: ind[1]$ returns NULL for subgroups; changed to ind[[1]] here
     if(subgroup){
-      store <- indiv.search(dat, grp[[1]], ind[[1]])
+      store <- indiv.search(dat, grp[[1]], ind[[1]],
+                            rmsea.cut = rmsea.cut,
+                            srmr.cut = srmr.cut,
+                            nnfi.cut = nnfi.cut,
+                            cfi.cut = cfi.cut,
+                            n.excellent = n.excellent)
     } else {
-      store <- indiv.search(dat, grp[[1]], ind[1])
+      store <- indiv.search(dat, grp[[1]], ind[1],
+                            rmsea.cut = rmsea.cut,
+                            srmr.cut = srmr.cut,
+                            nnfi.cut = nnfi.cut,
+                            cfi.cut = cfi.cut,
+                            n.excellent = n.excellent)
     }
     
     if(!is.null(lv_model)){
