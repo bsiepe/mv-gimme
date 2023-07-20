@@ -7,6 +7,7 @@ multiverse.gimme <- function(data,
                              cfi.cuts = .95,
                              n.excellent = 2,
                              n.cores = 1,
+                             prune_output = TRUE,
                              ...){
   
   # Input checks
@@ -27,8 +28,15 @@ multiverse.gimme <- function(data,
   
   # Nonparallel fitting
   if(n.cores == 1){
-    l_out <- lapply(mv_combs, function(x){
+    l_out <- lapply(1:nrow(combs), function(i){
       mvgimme::gimme(data = data,
+                     groupcutoff = combs[i, "groupcutoffs"],
+                     subcutoff = combs[i,"subcutoffs"],
+                     rmsea.cut = combs[i,"rmsea.cuts"],
+                     srmr.cut = combs[i,"srmr.cuts"],
+                     nnfi.cut = combs[i,"nnfi.cuts"],
+                     cfi.cut = combs[i,"cfi.cuts"],
+                     n.excellent = combs[i,"n.excellent"],
                      ...)
     })
     
@@ -45,7 +53,7 @@ multiverse.gimme <- function(data,
     future::plan(future::multisession, workers = n.cores)
     
     # progress bar
-    progressr::progressor(along = combs)
+    p <- progressr::progressor(along = combs)
     
     # Loop over inputs
     l_out <- future.apply::future_lapply(1:nrow(combs), 
@@ -59,18 +67,34 @@ multiverse.gimme <- function(data,
                      nnfi.cut = combs[i,"nnfi.cuts"],
                      cfi.cut = combs[i,"cfi.cuts"],
                      n.excellent = combs[i,"n.excellent"],
-                     plot = FALSE,
                      ...)
+    
+    # For progress bar
     Sys.sleep(0.001)
     p()
+    
+    
+    
     return(res)
     
     })
     
-    
+    # Stop multisession explicitly
+    future::plan(future::sequential)
 
   }
   
+  # Attach conditions to output
+  for(i in 1:nrow(combs)){
+    l_out[[i]]$conds <- combs[i,]
+  }
+  
+  # Prune output 
+  if(isTRUE(prune_output)){
+    lapply(l_out, function(x){
+      x$data <- NULL
+    })
+  }
   
   
   
