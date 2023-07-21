@@ -56,7 +56,8 @@ multiverse.gimme <- function(data,
     p <- progressr::progressor(along = combs)
     
     # Loop over inputs
-    l_out <- future.apply::future_lapply(1:nrow(combs), 
+    l_out <- future.apply::future_lapply(1:nrow(combs),
+                                         future.seed = TRUE,
                                 function(i){
       
     res <- mvgimme::gimme(data = data,
