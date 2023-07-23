@@ -51,7 +51,7 @@ multiverse.compare.group <- function(l_res,
   
   # Count occurrence of each group effect
   ## list of adjacency matrices
-  l_adjacency<- lapply(l_res, function(x){
+  l_adjacency <- lapply(l_res, function(x){
     tmp_groupedge <- ifelse(x$path_counts == n_ind, 1, 0)
     return(tmp_groupedge)
   }
@@ -64,7 +64,7 @@ multiverse.compare.group <- function(l_res,
     ref_diff_g = l_ref_diff, 
     adjacency_g = l_adjacency
   ) %>% 
-    dplyr::mutate(g_ref_diff = as.list(ref_diff_g)) %>% 
+    dplyr::mutate(ref_diff_g = as.list(ref_diff_g)) %>% 
     tidyr::unnest(n_ind)
   
   
@@ -84,13 +84,7 @@ multiverse.compare.subgroup <- function(l_res,
   }
   )
   
-  ## Summary statistics
-  # min_n_sub <- min(v_n_sub)
-  # max_n_sub <- max(v_n_sub)
-  # mean_n_sub <- max(v_n_sub)
-  # med_n_sub <- stats::median(v_n_sub)
-  # sd_n_sub <- sd(v_n_sub)
-  
+
   #--- Size of subgroups
   l_size_sub <- lapply(l_res, function(x){
     return(table(x$fit$sub_membership))
@@ -154,11 +148,13 @@ multiverse.compare.individual <- function(l_res,
     tmp_adj_mats <- lapply(x$path_est_mats, function(y){
       ifelse(y != 0, 1, 0)
     })
-    Map('-', ref_adj_mats, tmp_adj_mats)
+    l_adj <- Map('-', ref_adj_mats, tmp_adj_mats)
+    lapply(l_adj, function(y){as.matrix(y)})
   })
   ## path estimates
   l_diff_ests <- lapply(l_res, function(x){
-    Map('-', ref_path_est_mats, x$path_est_mats)
+    l_est<- Map('-', ref_path_est_mats, x$path_est_mats)
+    lapply(l_est, function(y){as.matrix(y)})
   })
 
   #--- Compare Fits
@@ -175,15 +171,57 @@ multiverse.compare.individual <- function(l_res,
   })
   
   #--- Aggregate
+  # First aggregate by taking mean for each edge across individuals
+  # then summarize this again
+  # split by averaging over all nonzero differences, or all differences
+  
+  # Adjacency matrix
+  
+  
+  # Mean differences of edges
+  mean_diff_ests <- lapply(l_diff_ests, function(x){
+    l_tmp <- list()
+    mean_mat <- apply(simplify2array(x), 1:2, mean)
+    l_tmp$mean_nonzero_diff_edge_i <- mean(abs(mean_mat[mean_mat != 0]))
+    l_tmp$med_nonzero_diff_edge_i <- stats::median(abs(mean_mat[mean_mat != 0]))
+    l_tmp$mean_diff_edge_i <- mean(abs(mean_mat))
+    l_tmp$med_diff_edge_i <- stats::median(abs(mean_mat))
+    return(l_tmp)
+  })
+    
+  # Fits 
+  mean_diff_fits <- lapply(l_diff_fit, function(x){
+    l_tmp <- list()
+    l_tmp$mean_diff_fit_i <- apply(x, 2, abs_mean)
+    l_tmp$med_diff_fit_i <- apply(x, 2, abs_med)
+    return(l_tmp)
+  })
+  
+  
+  # Centrality
+  mean_diff_cent <- lapply(l_diff_cent, function(x){
+    l_tmp <- list()
+    diff_cent <- sapply(x, abs_mean)
+    l_tmp$mean_diff_cent_i <- mean(abs(diff_cent))
+    l_tmp$med_diff_cent_i <- stats::median(abs(diff_cent))
+    return(l_tmp)
+  })
+  
   
   
   l_out <- tibble(
     n_ind_test = n_ind,
-    l_diff_adj_s = l_diff_adj,
-    l_diff_ests_s = l_diff_ests,
-    l_diff_fit_s = l_diff_fit,
-    l_diff_cent_s = l_diff_cent
-  )
+    l_diff_adj_i = l_diff_adj,
+    l_diff_ests_i = l_diff_ests,
+    l_diff_fit_i = l_diff_fit,
+    l_diff_cent_i = l_diff_cent,
+    mean_diff_ests_i = mean_diff_ests,
+    mean_diff_cent_i = mean_diff_cent,
+    mean_diff_fit_i = mean_diff_fits
+  ) %>% 
+    tidyr::unnest_wider(c(mean_diff_ests_i, 
+                          mean_diff_cent_i,
+                          mean_diff_fit_i))
   return(l_out)
 }
 
@@ -252,4 +290,15 @@ matrix_summary <- function(l_matrix) {
   
   return(summary_df)
 }
+
+
+# Small helpers -----------------------------------------------------------
+
+abs_mean <- function(x){
+  mean(abs(x))
+}
+abs_med <- function(x){
+  stats::median(abs(x))
+}
+
 
