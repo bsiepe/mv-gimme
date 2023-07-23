@@ -176,11 +176,12 @@ multiverse.compare.individual <- function(l_res,
   # split by averaging over all nonzero differences, or all differences
   
   # Adjacency matrix
-  mean_diff_adj <- lapply(l_diff_ests, function(x){
+  mean_diff_adj <- lapply(l_diff_adj, function(x){
     l_tmp <- list()
-    l_tmp$adj_sum <- apply(simplify2array(x), 1:2, abs_sum)
-    
-    
+    l_tmp$adj_sum_mat_i <- apply(simplify2array(x), 1:2, abs_sum)
+    l_tmp$adj_sum_sum_i <- sum(l_tmp$adj_sum_mat)
+    l_tmp$adj_sum_mean_i <- mean(l_tmp$adj_sum_mat)
+    return(l_tmp)
   })
   
   
@@ -221,11 +222,13 @@ multiverse.compare.individual <- function(l_res,
     l_diff_ests_i = l_diff_ests,
     l_diff_fit_i = l_diff_fit,
     l_diff_cent_i = l_diff_cent,
+    mean_diff_adj_i = mean_diff_adj,
     mean_diff_ests_i = mean_diff_ests,
     mean_diff_cent_i = mean_diff_cent,
     mean_diff_fit_i = mean_diff_fits
   ) %>% 
-    tidyr::unnest_wider(c(mean_diff_ests_i, 
+    tidyr::unnest_wider(c(mean_diff_adj_i,
+                          mean_diff_ests_i, 
                           mean_diff_cent_i,
                           mean_diff_fit_i))
   return(l_out)
