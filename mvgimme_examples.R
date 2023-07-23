@@ -15,6 +15,9 @@ ref_fit <- gimme::gimme(data = data,
 
 # saveRDS(mv_res, "mv_res.RDS")
 # saveRDS(ref_fit, "ref_fit.RDS")
+mv_res <- readRDS("mv_res.RDS")
+ref_fit <- readRDS("ref_fit.RDS")
+
 
 # single core
 before_gimme <- Sys.time()
