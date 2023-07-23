@@ -176,6 +176,12 @@ multiverse.compare.individual <- function(l_res,
   # split by averaging over all nonzero differences, or all differences
   
   # Adjacency matrix
+  mean_diff_adj <- lapply(l_diff_ests, function(x){
+    l_tmp <- list()
+    l_tmp$adj_sum <- apply(simplify2array(x), 1:2, abs_sum)
+    
+    
+  })
   
   
   # Mean differences of edges
@@ -201,7 +207,7 @@ multiverse.compare.individual <- function(l_res,
   # Centrality
   mean_diff_cent <- lapply(l_diff_cent, function(x){
     l_tmp <- list()
-    diff_cent <- sapply(x, abs_mean)
+    diff_cent <- rowSums(simplify2array(x))
     l_tmp$mean_diff_cent_i <- mean(abs(diff_cent))
     l_tmp$med_diff_cent_i <- stats::median(abs(diff_cent))
     return(l_tmp)
@@ -301,4 +307,6 @@ abs_med <- function(x){
   stats::median(abs(x))
 }
 
-
+abs_sum <- function(x){
+  sum(abs(x))
+}
