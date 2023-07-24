@@ -1,0 +1,99 @@
+---
+title: "GIMME Cutoff Simulation"
+author: "Björn Siepe"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+This document contains code for a small simulation on using different fit index cutoffs
+as stopping criteria for GIMME. 
+
+# Preparation
+```{r packages}
+library(mvgimme)    # multiverse gimme
+library(SimDesign)  # simulation design
+
+```
+
+Reproducibility
+```{r reproducibility}
+set.seed(35037)
+```
+
+
+
+
+
+# Simulation settings
+Create a design with different sample sizes and time series lengths.
+```{r sim-settings}
+sample_sizes <- c(50, 100, 200)
+ts_lengths <- c(50, 100, 200)
+
+sim_design <- SimDesign::createDesign(sample_size = sample_sizes,
+                                  ts_length = ts_lengths)
+
+```
+
+Fixed parameters across simulations: Data-Generating processes. 
+
+
+
+# Data Generation
+First, obtain "true" network from empirical data. 
+```{r true-dgp}
+
+```
+
+
+
+Then, create data-generation function to sample from this model, using `gimme`. 
+```{r data-generation}
+sim_generate <- function(condition, fixed_objects = NULL){
+  n <- condition$sample_size
+  t <- condition$ts_length
+  
+  # obtain fixed parameters
+  # TODO
+  
+  mvgimme::simulateVAR()
+  
+}
+```
+
+
+
+
+# Fitting functions
+We use standard GIMME, and 3 different threshold methods in mvgimme. 
+```{r fitting-methods}
+sim_analyse_gimme <- function(condition, dat, fixed_objects = NULL){
+  
+  
+}
+```
+
+
+
+# Summary function
+```{r summary-function}
+
+```
+
+
+
+
+# Execute Simulation
+
+```{r}
+SimDesign::runSimulation(sim_design, replications = 1000, store_results = TRUE, 
+                         generate = sim_generate, 
+                         analyse = list(gimme = sim_analyse_gimme, 
+                                        threshold = sim_analyse_threshold), 
+                         summarise = sim_summarise, save = TRUE, save_seeds = TRUE,
+                         packages = c("gimme"), fixed_objects = sim_pars)
+```
+
+
+
+# Evaluation
