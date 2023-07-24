@@ -154,3 +154,79 @@ ts.generate.asw <- function (mat, lvl, t,dens,p.group,con.b,lag.b,p.con) {
 # New function that combines both -----------------------------------------
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# -------------------------------------------------------------------------
+# VISUALIZATION -----------------------------------------------------------
+# -------------------------------------------------------------------------
+
+# Multiverse Network Plot -------------------------------------------------
+# This function sums all adjacency matrices of all individuals
+# across all specifications, and then creates a plot where
+# thickness of graphs corresponds to number of inclusions
+# see here: https://github.com/GatesLab/gimme/blob/cb0cf2f6b1cf5db5b16330966ccd8920cef15c66/gimme/R/summaryPathsCounts.R#L139
+
+multiverse_network <- function(mv_res, 
+                               n_lagged = NULL){          # number of lagged variables, assumed to be half the columns if not specified
+  count_mat <- as.matrix(Reduce('+', mv_res$adj_sum_mat_i))
+  
+  # Split matrix based on lag vs. non-lagged
+  if(is.null(n_lagged)){
+    n_lagged <-  ncol(count_mat)/2
+  }
+  
+  # Plot
+  qgraph::qgraphMixed(
+         undirected = count_mat[,(n_lagged+1):(ncol(count_mat))],
+         directed = count_mat[, 1: (n_lagged)],
+         layout       = "circle",
+         ltyUndirected = 1,
+         ltyDirected = 2,
+         edge.labels  = TRUE,
+         # edge.color   = colors,
+         parallelEdge = TRUE,
+         fade         = FALSE,
+         arrows       = FALSE,
+         labels       = 
+           colnames(count_mat)[(n_lagged+1):(ncol(count_mat))],
+         label.cex    = 2)
+  
+}
+
+
+
+
+
+
