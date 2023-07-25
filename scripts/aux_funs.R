@@ -152,7 +152,54 @@ ts.generate.asw <- function (mat, lvl, t,dens,p.group,con.b,lag.b,p.con) {
 
 
 # New function that combines both -----------------------------------------
+sim.gimme <- function(p.con, 
+                      nvar,
+                      AR,
+                      dens,
+                      p.group,
+                      con.b,
+                      lag.b,
+                      mat, 
+                      lvl,         # 
+                      t,           # length of time series
+                      n.ind        # number of individuals
+                      ){
+  
+  # Group-level
+  group.mat <- mat.generate.asw(
+                   p.con = p.con,
+                   nvar = nvar,
+                   AR = AR,
+                   dens = dens,
+                   p.group = p.group,
+                   con.b = con.b,
+                   lag.b = lag.b) 
+  
+  
+  # Individual level
+  # loop over number of individuals 
+  data.list <- list()
+  for(i in 1:n.ind){
+    ind.data <- ts.generate.asw(
+      mat = group.mat$sub1,
+      lvl = group.mat$lvl1,
+      t = t,
+      p.group = p.group,
+      con.b = con.b,
+      lag.b = lag.b,
+      p.con = p.con,
+      dens = dens
+      
+    )
+    ind.data$series <- round(ind.data$series, digits = 5)
+  
+    data.list[[i]] <- ind.data
+    }
 
+  return(data.list)
+  
+  
+} 
 
 
 
@@ -198,14 +245,18 @@ ts.generate.asw <- function (mat, lvl, t,dens,p.group,con.b,lag.b,p.con) {
 # thickness of graphs corresponds to number of inclusions
 # see here: https://github.com/GatesLab/gimme/blob/cb0cf2f6b1cf5db5b16330966ccd8920cef15c66/gimme/R/summaryPathsCounts.R#L139
 
-multiverse_network <- function(mv_res, 
-                               n_lagged = NULL){          # number of lagged variables, assumed to be half the columns if not specified
+multiverse.network <- function(mv_res, 
+                               n_lagged = NULL, # number of lagged variables, assumed to be half the columns if not specified
+                               cutoff = NULL){  # only include effects with certain proportion of occurrence?          
   count_mat <- as.matrix(Reduce('+', mv_res$adj_sum_mat_i))
   
   # Split matrix based on lag vs. non-lagged
   if(is.null(n_lagged)){
     n_lagged <-  ncol(count_mat)/2
   }
+  
+  # Cutoff option
+  
   
   # Plot
   qgraph::qgraphMixed(
@@ -215,10 +266,10 @@ multiverse_network <- function(mv_res,
          ltyUndirected = 1,
          ltyDirected = 2,
          edge.labels  = TRUE,
-         # edge.color   = colors,
+         edge.color   = "blue",
          parallelEdge = TRUE,
          fade         = FALSE,
-         arrows       = FALSE,
+         # arrows       = FALSE,
          labels       = 
            colnames(count_mat)[(n_lagged+1):(ncol(count_mat))],
          label.cex    = 2)
