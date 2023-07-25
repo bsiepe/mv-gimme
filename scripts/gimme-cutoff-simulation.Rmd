@@ -12,6 +12,8 @@ as stopping criteria for GIMME.
 ```{r packages}
 library(mvgimme)    # multiverse gimme
 library(SimDesign)  # simulation design
+library(here)
+source(here::here("scripts/aux_funs.R"))
 
 ```
 
@@ -26,38 +28,94 @@ set.seed(35037)
 
 # Simulation settings
 Create a design with different sample sizes and time series lengths.
+Maybe also different sparsity levels?
 ```{r sim-settings}
 sample_sizes <- c(50, 100, 200)
 ts_lengths <- c(50, 100, 200)
+replications <- 1000
 
 sim_design <- SimDesign::createDesign(sample_size = sample_sizes,
                                   ts_length = ts_lengths)
 
-```
+sim_pars <- list(
+  p.con = .50, 
+  nvar = 6, 
+  AR =.3,
+  p.group = .50,
+  dens = .20,
+  con.b = .6,
+  lag.b = -.3
+)
 
-Fixed parameters across simulations: Data-Generating processes. 
+```
 
 
 
 # Data Generation
-First, obtain "true" network from empirical data. 
 ```{r true-dgp}
+# test_mat <- mat.generate.asw(p.con = .50, 
+#                  nvar = 6, AR=.3,
+#                  p.group = .50,dens = .20,
+#                  con.b = .6,lag.b = -.3)
+# out <- ts.generate.asw(mat = test_mat$sub1,
+#                              lvl = test_mat$lvl1,
+#                              t   = 100,
+#                              p.group = .50,dens = .20,
+#                              con.b = .6,lag.b = -.3,
+#                              p.con = .50)
+# 
+# res <- sim.gimme(p.con = .50, 
+#                  nvar = 6, AR=.3,
+#                  p.group = .50,dens = .20,
+#                  con.b = .6,lag.b = -.3,
+#                  n.ind = 20, t = 100)
+# 
+
 
 ```
 
+Use functions from here: 
+https://github.com/aweigard/GIMME_AR_simulations/tree/master
 
-
-Then, create data-generation function to sample from this model, using `gimme`. 
+Then, create data-generation function to sample from this model, using `gimme`.
 ```{r data-generation}
-sim_generate <- function(condition, fixed_objects = NULL){
+sim_generate <- function(condition, 
+                         fixed_objects = NULL){
+  # obtain fixed parameters
+  SimDesign::Attach(fixed_objects)
+  
+  # obtain condition parameters
   n <- condition$sample_size
   t <- condition$ts_length
   
-  # obtain fixed parameters
-  # TODO
+    sim_dat <- try(sim.gimme(
+                   p.con = p.con, 
+                   nvar = nvar,
+                   AR = AR,
+                   dens = dens,
+                   p.group = p.group,
+                   con.b = con.b,
+                   lag.b = lag.b,
+                   mat = mat, 
+                   lvl = lvl,          
+                   t = t,              
+                   n.ind = n))
+  if(is(sim_dat, 'try-error')) browser()
   
-  mvgimme::simulateVAR()
+  # save dgp
+  saveRDS(sim_dat, file = paste0("output/sim_dat_", n, "_", t,
+                                   ".RDS"))
   
+  # create list of matrices
+  l_dat <- lapply(sim_dat, function(x){
+    as.matrix(x$series, ncol = nvar)
+  })
+  
+  # 
+  
+  
+  dat <- list(dat = l_dat, parameters = list(paths = sim_dat$paths, 
+                                             levels = sim_dat$levels))
 }
 ```
 
@@ -67,17 +125,123 @@ sim_generate <- function(condition, fixed_objects = NULL){
 # Fitting functions
 We use standard GIMME, and 3 different threshold methods in mvgimme. 
 ```{r fitting-methods}
-sim_analyse_gimme <- function(condition, dat, fixed_objects = NULL){
+sim_analyse_gimme_default <- function(condition, dat, fixed_objects = NULL){
   
+  # obtain fixed objects
+  Attach(fixed_objects)
+  
+  # 
+  
+  gimme_res <- try(multiverse.gimme(data = dat$dat,
+                 ar = TRUE, 
+                 subgroup = TRUE,
+                 groupcutoff = .75,
+                 subcutoff   = .75))
+  if(is(gimme_res, 'try-error')) browser()
+  
+  ret <- list(path_counts = gimme_res$path_counts)
   
 }
+
+sim_analyse_gimme_liberal <- function(condition, dat, fixed_objects = NULL){
+  
+  # obtain fixed objects
+  Attach(fixed_objects)
+  
+  # 
+  
+  ret <- multiverse.gimme(data = dat$dat,
+                 ar = TRUE, 
+                 plot = FALSE,
+                 subgroup = TRUE,
+                 groupcutoff = .75,
+                 subcutoff   = .75,
+                 rmsea.cuts = .08,
+                 srms.cuts = .08,
+                 nnfi.cuts = .90,
+                 cfi.cuts = .90)
+  ret
+  
+}
+
+sim_analyse_gimme_strict <- function(condition, dat, fixed_objects = NULL){
+  
+  # obtain fixed objects
+  Attach(fixed_objects)
+  
+  # 
+  
+  ret <- multiverse.gimme(data = dat$dat,
+                 ar = TRUE, 
+                 plot = FALSE,
+                 subgroup = TRUE,
+                 groupcutoff = .75,
+                 subcutoff   = .75,
+                 rmsea.cuts = .03,
+                 srms.cuts = .03,
+                 nnfi.cuts = .97,
+                 cfi.cuts = .97
+                 )
+  ret
+  
+}
+
+sim_analyse_gimme_threshold1 <- function(condition, dat, fixed_objects = NULL){
+  
+  # obtain fixed objects
+  Attach(fixed_objects)
+  
+  # 
+  
+  ret <- multiverse.gimme(data = dat$dat,
+                 ar = TRUE, 
+                 plot = FALSE,
+                 subgroup = TRUE,
+                 groupcutoff = .75,
+                 subcutoff   = .75,
+                 n.excellent = 1)
+  ret
+  
+}
+
+
+
 ```
 
 
 
 # Summary function
 ```{r summary-function}
-
+sim_summarize <- function(condition, results, fixed_objects = NULL){
+  
+  # # load dgp from csv
+  # dgp_filename <- list.files("output/", pattern = condition)
+  # dgp <- read.csv(dgp_filename[[1]])
+  # 
+  # # compute adjacency matrix true dgp
+  # true_dgp <- list()
+  # for(i in 1:length(dgp)){
+  #   true_dgp[[i]] <- list()
+  #   true_dgp[[i]]$path_counts <- ifelse(dgp[[i]]$paths != 0, 1, 0)
+  # }
+  # 
+  # 
+  # # summarize information of dgp
+  # 
+  # 
+  # # Analyze difference in counts matrix
+  # diff_count <- sum(results$path_counts - true_dgp$path_counts)
+  
+  # Analyze bias across all individual networks
+  
+  
+  # For testing, compute some useless stat
+  n_paths <- try(sum(results$path_counts))
+  if(is(n_paths, 'try-error')) browser()
+  # Output
+  ret <- c(n_paths = n_paths)
+  
+}
 ```
 
 
@@ -86,14 +250,27 @@ sim_analyse_gimme <- function(condition, dat, fixed_objects = NULL){
 # Execute Simulation
 
 ```{r}
-SimDesign::runSimulation(sim_design, replications = 1000, store_results = TRUE, 
-                         generate = sim_generate, 
-                         analyse = list(gimme = sim_analyse_gimme, 
-                                        threshold = sim_analyse_threshold), 
-                         summarise = sim_summarise, save = TRUE, save_seeds = TRUE,
-                         packages = c("gimme"), fixed_objects = sim_pars)
+sim_res <- SimDesign::runSimulation(sim_design, 
+                                    replications = 3, 
+                                    store_results = FALSE, 
+                                    generate = sim_generate, 
+                                    # analyse = list(
+                                    #     gimme = sim_analyse_gimme_default, 
+                                    #     liberal = sim_analyse_gimme_liberal,
+                                    #     strict = sim_analyse_gimme_strict,
+                                    #     threshold = sim_analyse_gimme_threshold1), 
+                                    analyse = sim_analyse_gimme_default,
+                                    summarise = sim_summarize, 
+                                    # save = TRUE, 
+                                    save_seeds = TRUE,
+                                    packages = c("mvgimme"), 
+                                    fixed_objects = sim_pars,
+                                    parallel = TRUE)
 ```
 
 
 
 # Evaluation
+
+
+
