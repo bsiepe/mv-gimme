@@ -30,8 +30,11 @@ set.seed(35037)
 Create a design with different sample sizes and time series lengths.
 Maybe also different sparsity levels?
 ```{r sim-settings}
-sample_sizes <- c(50, 100, 200)
-ts_lengths <- c(50, 100, 200)
+# sample_sizes <- c(50, 100, 200)
+# For testing only:
+sample_sizes <- c(20)
+# ts_lengths <- c(50, 100, 200)
+ts_lengths <- c(50,100)
 replications <- 1000
 
 sim_design <- SimDesign::createDesign(sample_size = sample_sizes,
@@ -114,8 +117,9 @@ sim_generate <- function(condition,
   # 
   
   
-  dat <- list(dat = l_dat, parameters = list(paths = sim_dat$paths, 
-                                             levels = sim_dat$levels))
+  dat <- list(dat = l_dat,  # don't export parameters, or I get error later on
+  parameters = list(paths = sim_dat$paths))
+  # levels = sim_dat$levels))
 }
 ```
 
@@ -253,6 +257,8 @@ sim_summarize <- function(condition, results, fixed_objects = NULL){
   if(is(n_paths, 'try-error')) browser()
   # Output
   ret <- c(n_paths = n_paths)
+  ret <- unlist(ret)
+  return(ret)
   
 }
 ```
@@ -265,7 +271,7 @@ sim_summarize <- function(condition, results, fixed_objects = NULL){
 ```{r}
 sim_res <- SimDesign::runSimulation(sim_design, 
                                     replications = 2, 
-                                    store_results = FALSE, 
+                                    save_results = TRUE,
                                     generate = sim_generate, 
                                     # analyse = list(
                                     #     gimme = sim_analyse_gimme_default, 
