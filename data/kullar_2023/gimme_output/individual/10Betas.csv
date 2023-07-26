@@ -1,0 +1,10 @@
+"","HighCorrPositivelag","HighCorrNegativelag","Enthusiasticlag","Relaxedlag","Sadlag","Nervouslag","Stressedlag","MWoccurlag","EmotionChronometrylag","HighCorrPositive","HighCorrNegative","Enthusiastic","Relaxed","Sad","Nervous","Stressed","MWoccur","EmotionChronometry","TimeofDay"
+"HighCorrPositive",0.4674,0,0,0,0,0,0,0,0,0,0,0,0.0688,0,0,0,0,0,0
+"HighCorrNegative",0,0.346,0,0,0,0,0,0,0,-0.5585,0,0,0,0,0,0,0,0,0
+"Enthusiastic",0,0,0.301,0,0,0,0,0,0,0.5404,0,0,0,0,0,0,0,0,0
+"Relaxed",0,0,0,0.1,0,0,0,0,0,0,0,0,0,-0.273,0,-0.6183,0,0,0
+"Sad",0,0,0,0,0.2541,0,0,0,0,-0.3346,0.4534,0,0,0,0,0,0,0,0
+"Nervous",0,0,0,0,0,0.2429,0,0,0,0,0,0,0,0,0,0.7146,0,0,0
+"Stressed",0,-0.3545,0,0,0,0,0.6923,0,0,0,0.5069,0,0,0,0,0,0,0,0
+"MWoccur",0,0,0,0,0,0,0,0.0578,0,0,0.3884,0,0,0,0,0,0,0,0
+"EmotionChronometry",0,0,0,0,0,0,0,0,-0.1034,0,0,0,0,0,0,0,0,0,0

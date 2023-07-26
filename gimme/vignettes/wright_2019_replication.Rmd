@@ -1,0 +1,28 @@
+---
+title: "wright_2019_replication"
+author: "Björn Siepe"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+This document loads data of Wright et al. (2019) from the [Open Science Framework](https://osf.io/95hyr/).
+As code was not available online, we then fit a GIMME model with default settings to the data, as suggested by Wright in personal communication.
+
+# Preparation
+
+
+
+# Load Data
+
+
+# Preprocessing
+
+
+
+# Fit Model
+
+
+
+
+# Sanity Check
+Compare our results with fitted results online to see if we specified the model in a similar way.
