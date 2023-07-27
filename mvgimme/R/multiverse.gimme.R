@@ -12,6 +12,7 @@
 #' @param n.excellent The number of excellent fitting indices to require for model selection.
 #' @param n.cores The number of cores to use for parallel fitting. Set to 1 for nonparallel fitting.
 #' @param prune_output Logical; if TRUE, the model data will be removed from the output list for reduced memory usage.
+#' @param prune_output Logical; if TRUE, every iteration will be saved as .RDS
 #' @param ... Additional arguments to be passed to \code{\link[mvgimme::gimme]{mvgimme::gimme}} function.
 #' @return A list containing the results of the multiverse analysis for different parameter combinations. Each element of the list corresponds to one specification, and the conditions used for fitting are attached as a data frame to each result.
 #' @export
@@ -25,6 +26,7 @@ multiverse.gimme <- function(data,
                              n.excellent = 2,
                              n.cores = 1,
                              prune_output = TRUE,
+                             save_output = FALSE, 
                              ...){
   
   # Input checks
@@ -109,8 +111,16 @@ multiverse.gimme <- function(data,
   
   # Prune output 
   if(isTRUE(prune_output)){
-    lapply(l_out, function(x){
+    l_out <- lapply(l_out, function(x){
       x$data <- NULL
+      x$psi <- NULL
+      x$psi_unst <- NULL
+      x$vcov <- NULL
+      x$vcovfull <- NULL
+      x$path_se_est <- NULL
+      x$plots <- NULL
+      return(x)
+    
     })
   }
   
