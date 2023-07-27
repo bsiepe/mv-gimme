@@ -12,7 +12,8 @@
 #' @param n.excellent The number of excellent fitting indices to require for model selection.
 #' @param n.cores The number of cores to use for parallel fitting. Set to 1 for nonparallel fitting.
 #' @param prune_output Logical; if TRUE, the model data will be removed from the output list for reduced memory usage.
-#' @param prune_output Logical; if TRUE, every iteration will be saved as .RDS
+#' @param save_output Logical; if TRUE, every iteration will be saved as .RDS
+#' @param save_dir Directory where results should be saved if \code{save_output = TRUE}. Will be created if it does not yet exist.
 #' @param ... Additional arguments to be passed to \code{\link[mvgimme::gimme]{mvgimme::gimme}} function.
 #' @return A list containing the results of the multiverse analysis for different parameter combinations. Each element of the list corresponds to one specification, and the conditions used for fitting are attached as a data frame to each result.
 #' @export
@@ -27,6 +28,7 @@ multiverse.gimme <- function(data,
                              n.cores = 1,
                              prune_output = TRUE,
                              save_output = FALSE, 
+                             save_dir = NULL,
                              ...){
   
   # Input checks
@@ -42,10 +44,10 @@ multiverse.gimme <- function(data,
     n.excellent = n.excellent
   )
   
-  # Setup output
-  # l_out <- list()
-  
-  # Nonparallel fitting
+
+  #
+  #--- Nonparallel fitting
+  #
   if(n.cores == 1){
     l_out <- lapply(1:nrow(combs), function(i){
       tryCatch({mvgimme::gimme(data = data,
@@ -58,11 +60,28 @@ multiverse.gimme <- function(data,
                      n.excellent = combs[i,"n.excellent"],
                      ...)}, error = function(e) return(NA))
     })
-    
+  
+    if(isTRUE(save_output)) {
+      if (is.null(save_dir)) {
+          save_dir <- "mv_output/"
+      }
+      
+      # Create the save_dir if it does not exist
+      if (!dir.exists(save_dir)) {
+        dir.create(save_dir, recursive = TRUE)
+      }
+      
+      # Generate filename
+      filename <- paste0("output_", i, ".RDS")
+      
+      # Save the output as .RDS file in the save_dir
+      saveRDS(res, file.path(save_dir, filename))
+    }
     
   }
-  
-  # Parallel fitting
+  #
+  #--- Parallel fitting
+  #
   if(n.cores >1){
     
     progressr::handlers(global = TRUE)
@@ -93,7 +112,22 @@ multiverse.gimme <- function(data,
     Sys.sleep(0.001)
     p()
     
-    
+    if(isTRUE(save_output)) {
+      if (is.null(save_dir)) {
+        save_dir <- "mv_output/"
+      }
+      
+      # Create the save_dir if it does not exist
+      if (!dir.exists(save_dir)) {
+        dir.create(save_dir, recursive = TRUE)
+      }
+      
+      # Generate filename
+      filename <- paste0("output_", i, ".RDS")
+      
+      # Save the output as .RDS file in the save_dir
+      saveRDS(res, file.path(save_dir, filename))
+    }
     
     return(res)
     
