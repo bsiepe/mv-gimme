@@ -29,7 +29,7 @@ multiverse.gimme <- function(data,
   # Nonparallel fitting
   if(n.cores == 1){
     l_out <- lapply(1:nrow(combs), function(i){
-      mvgimme::gimme(data = data,
+      tryCatch({mvgimme::gimme(data = data,
                      groupcutoff = combs[i, "groupcutoffs"],
                      subcutoff = combs[i,"subcutoffs"],
                      rmsea.cut = combs[i,"rmsea.cuts"],
@@ -37,7 +37,7 @@ multiverse.gimme <- function(data,
                      nnfi.cut = combs[i,"nnfi.cuts"],
                      cfi.cut = combs[i,"cfi.cuts"],
                      n.excellent = combs[i,"n.excellent"],
-                     ...)
+                     ...)}, error = function(e) return(NA))
     })
     
     
@@ -60,7 +60,7 @@ multiverse.gimme <- function(data,
                                          future.seed = TRUE,
                                 function(i){
       
-    res <- mvgimme::gimme(data = data,
+    res <- tryCatch({mvgimme::gimme(data = data,
                      groupcutoff = combs[i, "groupcutoffs"],
                      subcutoff = combs[i,"subcutoffs"],
                      rmsea.cut = combs[i,"rmsea.cuts"],
@@ -68,7 +68,7 @@ multiverse.gimme <- function(data,
                      nnfi.cut = combs[i,"nnfi.cuts"],
                      cfi.cut = combs[i,"cfi.cuts"],
                      n.excellent = combs[i,"n.excellent"],
-                     ...)
+                     ...)}, error = function(e) return(NA))
     
     # For progress bar
     Sys.sleep(0.001)
