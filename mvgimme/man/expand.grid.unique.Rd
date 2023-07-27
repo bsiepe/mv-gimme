@@ -4,7 +4,7 @@
 \alias{expand.grid.unique}
 \title{Provides unique combinations of two vectors.}
 \usage{
-\method{expand}{grid.unique}(x, y, incl.eq = TRUE)
+expand.grid.unique(x, y, incl.eq = TRUE)
 }
 \arguments{
 \item{x}{A character vector containing variable names.}

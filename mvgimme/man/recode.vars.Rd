@@ -4,7 +4,7 @@
 \alias{recode.vars}
 \title{Recode variable names.}
 \usage{
-\method{recode}{vars}(data, oldvalue, newvalue)
+recode.vars(data, oldvalue, newvalue)
 }
 \arguments{
 \item{data}{The vector of variable names to be recoded}

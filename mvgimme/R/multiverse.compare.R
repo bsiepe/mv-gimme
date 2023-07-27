@@ -1,3 +1,11 @@
+#' Compare Results from Multiverse Analysis
+#'
+#' This function compares the results obtained from a multiverse analysis with a reference model. It performs three levels of comparison: group-level, subgroup-level, and individual-level comparison. The results are combined into a tibble where each row represents one specification, and individual results can be stored in a dataframe inside the tibble.
+#'
+#' @param l_res A list of results obtained from the multiverse analysis. Each element of the list should be a data object containing the results.
+#' @param ref_model The reference model to compare the results with.
+#' @return A tibble containing the comparison results at different levels: group-level, subgroup-level, and individual-level comparison along with condition information for each specification.
+#' @export
 multiverse.compare <- function(l_res,
                                ref_model
 ){

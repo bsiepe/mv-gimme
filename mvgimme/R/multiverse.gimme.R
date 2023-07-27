@@ -1,3 +1,20 @@
+#' Multiverse GIMME
+#'
+#' This function is a wrapper around the `gimme` function. It allows fitting a multiverse of models with different specifications in parallel. 
+#'
+#' @param data The data for fitting the models.
+#' @param groupcutoffs The cutoff values for group-level fit indices. Should be a numeric value or a vector of numeric values.
+#' @param subcutoffs The cutoff values for subgroup-level fit indices. Should be a numeric value or a vector of numeric values.
+#' @param rmsea.cuts The cutoff values for RMSEA (Root Mean Square Error of Approximation) fit indices.
+#' @param srmr.cuts The cutoff values for SRMR (Standardized Root Mean Residual) fit indices.
+#' @param nnfi.cuts The cutoff values for NNFI (Non-Normed Fit Index) fit indices.
+#' @param cfi.cuts The cutoff values for CFI (Comparative Fit Index) fit indices.
+#' @param n.excellent The number of excellent fitting indices to require for model selection.
+#' @param n.cores The number of cores to use for parallel fitting. Set to 1 for nonparallel fitting.
+#' @param prune_output Logical; if TRUE, the model data will be removed from the output list for reduced memory usage.
+#' @param ... Additional arguments to be passed to \code{\link[mvgimme::gimme]{mvgimme::gimme}} function.
+#' @return A list containing the results of the multiverse analysis for different parameter combinations. Each element of the list corresponds to one specification, and the conditions used for fitting are attached as a data frame to each result.
+#' @export
 multiverse.gimme <- function(data, 
                              groupcutoffs = .75, 
                              subcutoffs = .51,

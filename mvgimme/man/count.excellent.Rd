@@ -4,7 +4,7 @@
 \alias{count.excellent}
 \title{Counts number of excellent fit indices}
 \usage{
-\method{count}{excellent}(
+count.excellent(
   indices,
   rmsea.cut = 0.05,
   srmr.cut = 0.05,
