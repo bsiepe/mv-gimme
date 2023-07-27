@@ -4,7 +4,13 @@
 \alias{count.excellent}
 \title{Counts number of excellent fit indices}
 \usage{
-count.excellent(indices)
+\method{count}{excellent}(
+  indices,
+  rmsea.cut = 0.05,
+  srmr.cut = 0.05,
+  nnfi.cut = 0.95,
+  cfi.cut = 0.95
+)
 }
 \arguments{
 \item{indices}{A vector of fit indices from lavaan.}

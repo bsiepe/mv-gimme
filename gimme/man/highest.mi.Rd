@@ -14,7 +14,12 @@ highest.mi(
   allow.mult,
   ms_tol,
   hybrid,
-  dir_prop_cutoff
+  dir_prop_cutoff,
+  n.excellent = 2,
+  rmsea.cut = 0.05,
+  srmr.cut = 0.05,
+  nnfi.cut = 0.95,
+  cfi.cut = 0.95
 )
 }
 \arguments{

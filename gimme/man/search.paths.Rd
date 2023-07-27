@@ -18,7 +18,12 @@ search.paths(
   ms_allow = FALSE,
   ms_tol = 1e-06,
   hybrid = F,
-  dir_prop_cutoff = 0
+  dir_prop_cutoff = 0,
+  rmsea.cut = 0.05,
+  srmr.cut = 0.05,
+  nnfi.cut = 0.95,
+  cfi.cut = 0.95,
+  n.excellent = 2
 )
 }
 \arguments{

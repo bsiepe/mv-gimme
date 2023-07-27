@@ -17,7 +17,12 @@ search.paths.ms(
   ms_allow,
   ms_tol,
   hybrid,
-  dir_prop_cutoff
+  dir_prop_cutoff,
+  rmsea.cut = 0.05,
+  srmr.cut = 0.05,
+  nnfi.cut = 0.95,
+  cfi.cut = 0.95,
+  n.excellent = 2
 )
 }
 \arguments{
