@@ -51,18 +51,28 @@ multiverse.compare.group <- function(l_res,
   
   # Count occurrence of each group effect
   ## list of adjacency matrices
+  ## TODO maybe this could be improved
   l_adjacency <- lapply(l_res, function(x){
     tmp_groupedge <- ifelse(x$path_counts == n_ind, 1, 0)
     return(tmp_groupedge)
   }
   )
-
+  
+  # Heterogeneity
+  ## divide no. of group edges by no. of total edges
+  l_heterogeneity <- list()
+  for(i in 1:length(l_adjacency){
+    # calculate number of estimated edges, group + individual
+    l_adjacency_ind <- ifelse(l_res[[i]]$path_counts > 0, 1, 0)
+    l_heterogeneity[[i]] <- sum(l_adjacency[[i]])/sum(l_adjacency_ind)
+  })
   
   #--- Output
   l_out <- tibble(
     n_ind = n_ind,
     ref_diff_g = l_ref_diff, 
-    adjacency_g = l_adjacency
+    adjacency_g = l_adjacency,
+    hetereogeneity_g = l_heterogeneity
   ) %>% 
     dplyr::mutate(ref_diff_g = as.list(ref_diff_g)) %>% 
     tidyr::unnest(n_ind)
