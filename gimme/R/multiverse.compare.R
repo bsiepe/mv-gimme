@@ -61,11 +61,11 @@ multiverse.compare.group <- function(l_res,
   # Heterogeneity
   ## divide no. of group edges by no. of total edges
   l_heterogeneity <- list()
-  for(i in 1:length(l_adjacency){
+  for(i in 1:length(l_adjacency)){
     # calculate number of estimated edges, group + individual
     l_adjacency_ind <- ifelse(l_res[[i]]$path_counts > 0, 1, 0)
     l_heterogeneity[[i]] <- sum(l_adjacency[[i]])/sum(l_adjacency_ind)
-  })
+  }
   
   #--- Output
   l_out <- tibble(
