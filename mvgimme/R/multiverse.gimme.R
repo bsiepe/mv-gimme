@@ -130,7 +130,7 @@ multiverse.gimme <- function(data,
     }
     
     return(res)
-    
+    print(paste0("Finished iteration ", i))
     })
     
     # Stop multisession explicitly
