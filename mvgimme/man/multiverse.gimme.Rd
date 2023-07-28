@@ -15,6 +15,8 @@ multiverse.gimme(
   n.excellent = 2,
   n.cores = 1,
   prune_output = TRUE,
+  save_output = FALSE,
+  save_dir = NULL,
   ...
 )
 }
@@ -38,6 +40,10 @@ multiverse.gimme(
 \item{n.cores}{The number of cores to use for parallel fitting. Set to 1 for nonparallel fitting.}
 
 \item{prune_output}{Logical; if TRUE, the model data will be removed from the output list for reduced memory usage.}
+
+\item{save_output}{Logical; if TRUE, every iteration will be saved as .RDS}
+
+\item{save_dir}{Directory where results should be saved if \code{save_output = TRUE}. Will be created if it does not yet exist.}
 
 \item{...}{Additional arguments to be passed to \code{\link[mvgimme::gimme]{mvgimme::gimme}} function.}
 }
