@@ -50,7 +50,7 @@ multiverse.gimme <- function(data,
   #
   if(n.cores == 1){
     l_out <- lapply(1:nrow(combs), function(i){
-      tryCatch({mvgimme::gimme(data = data,
+      mvgimme::gimme(data = data,
                      groupcutoff = combs[i, "groupcutoffs"],
                      subcutoff = combs[i,"subcutoffs"],
                      rmsea.cut = combs[i,"rmsea.cuts"],
@@ -58,7 +58,7 @@ multiverse.gimme <- function(data,
                      nnfi.cut = combs[i,"nnfi.cuts"],
                      cfi.cut = combs[i,"cfi.cuts"],
                      n.excellent = combs[i,"n.excellent"],
-                     ...)}, error = function(e) return(NA))
+                     ...)
     })
   
     if(isTRUE(save_output)) {
@@ -84,21 +84,21 @@ multiverse.gimme <- function(data,
   #
   if(n.cores >1){
     
-    progressr::handlers(global = TRUE)
-    progressr::handlers("txtprogressbar")
+    # progressr::handlers(global = TRUE)
+    # progressr::handlers("txtprogressbar")
     
     # Setup parallelization
     future::plan(future::multisession, workers = n.cores)
     
     # progress bar
-    p <- progressr::progressor(along = combs)
+    # p <- progressr::progressor(along = combs)
     
     # Loop over inputs
     l_out <- future.apply::future_lapply(1:nrow(combs),
                                          future.seed = TRUE,
                                 function(i){
       
-    res <- tryCatch({mvgimme::gimme(data = data,
+    res <- try(mvgimme::gimme(data = data,
                      groupcutoff = combs[i, "groupcutoffs"],
                      subcutoff = combs[i,"subcutoffs"],
                      rmsea.cut = combs[i,"rmsea.cuts"],
@@ -106,11 +106,11 @@ multiverse.gimme <- function(data,
                      nnfi.cut = combs[i,"nnfi.cuts"],
                      cfi.cut = combs[i,"cfi.cuts"],
                      n.excellent = combs[i,"n.excellent"],
-                     ...)}, error = function(e) return(NA))
+                     ...))
     
     # For progress bar
-    Sys.sleep(0.001)
-    p()
+    # Sys.sleep(0.001)
+    # p()
     
     if(isTRUE(save_output)) {
       if (is.null(save_dir)) {
@@ -130,7 +130,7 @@ multiverse.gimme <- function(data,
     }
     
     return(res)
-    print(paste0("Finished iteration ", i))
+    # print(paste0("Finished iteration ", i))
     })
     
     # Stop multisession explicitly
