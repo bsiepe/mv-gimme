@@ -43,15 +43,25 @@ multiverse.compare <- function(l_res,
 multiverse.compare.group <- function(l_res,
                                      ref_model){
   
-  # reference model info
+  #--- Reference model info
+  # TODO this will have to account for nonconvergence
   n_ind <- length(ref_model$data)
+  n_var <- ref_model$n_vars_total
   
+  # indices for temporal and contemporaneous
+  temp_ind <- 1:(n_var/2)
+  cont_ind <- ((n_var/2)+1):n_var
+  
+  #--- Adjacency Matrix
   ## Find group effects adjacency matrix
   ref_groupedge <- ifelse(ref_model$path_counts == n_ind, 1, 0)
+  # ignore autoregressive coefs
+  diag(ref_groupedge[, temp_ind]) <- rep(0, n_var)
   
-  # Find group effects adjacency matrix
+  # Find group effects adjacency matrix differences
   l_ref_diff <- lapply(l_res, function(x){
     tmp_groupedge <- ifelse(x$path_counts == n_ind, 1, 0)
+    diag(tmp_groupedge[, temp_ind]) <- rep(0, n_var)
     diff_groupedge <- ref_groupedge - tmp_groupedge
     return(diff_groupedge)
   }
@@ -59,14 +69,13 @@ multiverse.compare.group <- function(l_res,
   
   # Count occurrence of each group effect
   ## list of adjacency matrices
-  ## TODO maybe this could be improved
   l_adjacency <- lapply(l_res, function(x){
     tmp_groupedge <- ifelse(x$path_counts == n_ind, 1, 0)
     return(tmp_groupedge)
   }
   )
   
-  # Heterogeneity
+  #--- Heterogeneity
   ## divide no. of group edges by no. of total edges
   l_heterogeneity <- list()
   for(i in 1:length(l_adjacency)){
@@ -92,7 +101,7 @@ multiverse.compare.group <- function(l_res,
 multiverse.compare.subgroup <- function(l_res, 
                                         ref_model){
   
-  # reference model info
+  #--- Reference model info
   n_ind <- length(ref_model$data)
   ref_sim_matrix <- ref_model$sim_matrix
   
@@ -124,10 +133,9 @@ multiverse.compare.subgroup <- function(l_res,
   l_out <- tibble(
     n_sub_g = l_n_sub,
     size_sub_s = l_size_sub,
-    vi_s = l_pert$vi,
-    ari_s = l_pert$ari,
-    modularity_s = l_pert$modularity
-  ) 
+    l_pert = l_pert
+  ) %>% 
+    tidyr::unnest_wider(l_pert)
     
   return(l_out)
 }
@@ -139,48 +147,137 @@ multiverse.compare.individual <- function(l_res,
   
   #--- Reference model 
   n_ind <- length(ref_model$data)
-  
+  n_var <- ref_model$n_vars_total
+    
+  # indices for temporal and contemporaneous
+  temp_ind <- 1:(n_var/2)
+  cont_ind <- ((n_var/2)+1):n_var
+    
   ## Estimates
   ref_path_est_mats <- ref_model$path_est_mats
   
-  ## Adjacency matrix
+  
+  #--- Adjacency matrix
+  # ignore autoregressive effects
   ref_adj_mats <- lapply(ref_path_est_mats, function(x){
-    ifelse(x != 0, 1, 0)
+    tmp <- ifelse(x != 0, 1, 0)
+    diag(tmp[, temp_ind]) <- rep(0, n_var)
+    return(tmp)
   })
   
-  ## Fit indices
+  #--- Density
+  ref_dens_temp <- lapply(ref_path_est_mats, function(x){
+    abs_sum(x[, temp_ind])
+  })
+  
+  ref_dens_cont <- lapply(ref_path_est_mats, function(x){
+    abs_sum(x[, cont_ind])
+  })
+  
+  #--- Fit indices
   fit_ind_names <- c("chisq", "df", "npar", "pvalue", "rmsea", "srmr",
                      "nnfi", "cfi", "bic", "aic", "logl")
   ref_fit_ind <- ref_model$fit[names(ref_model$fit) %in% fit_ind_names]
   
-  ## Centrality
+  #--- Centrality
   ref_outstrength <- lapply(ref_path_est_mats, function(x){
     colSums(abs(x))
   })
 
+  ########################
+  #--- Nonconverg. Checks
+  ########################
+  # TODO
+  # can only add this after I have seen some actual nonconvergence
   
   
+  ########################
+  #--- Plausibility Checks
+  ########################
+  
+  # Check diagonal of Psi (contemporaneous) matrix
+  # Values should be >= 0 & <= 1
+  # inspired by https://github.com/aweigard/GIMME_AR_simulations/blob/master/analyze_recovery_Balanced.R
+  # 1 means implausible value somewhere in psi matrix
+  l_implausible <- lapply(l_res, function(x){
+    lapply(x$path_est_mats, function(y){
+      sum(ifelse(any(diag(y[,temp_ind]) < 0 | diag(y[,temp_ind]) > 1) , 1, 0))
+    })
+  })
+  sum_implausible <- sapply(l_plausible, sum)
+  
+  
+  ########################
   #--- Compare Edges
+  ########################
+  #--- Nondirectional recovery
+  # Only for contemporaneous effects
+  ref_nondir_adj_mats <- lapply(ref_path_est_mats, function(x){
+    tmp <- ifelse(x[,cont_ind] != 0, 1, 0)
+    tmp <- nondirect_adjacency(tmp)
+    return(tmp)
+  })
+  
+  l_diff_nondir_adj <- lapply(l_res, function(x){
+    tmp_nondir_adj_mats <- lapply(x$path_est_mats, function(y){
+      tmp <- ifelse(x[,cont_ind] != 0, 1, 0)
+      tmp <- nondirect_adjacency(tmp)
+      return(tmp)
+    })
+    l_nondir_adj <- Map('-', ref_nondir_adj_mats, tmp_nondir_adj_mats)
+    lapply(l_nondir_adj, function(y){as.matrix(y)})
+    
+  })
+  
+  #--- Directional recovery
   l_diff_adj <- lapply(l_res, function(x){
     ## adjacency matrices
+    # ignore AR coefs
     tmp_adj_mats <- lapply(x$path_est_mats, function(y){
-      ifelse(y != 0, 1, 0)
+      tmp <- ifelse(x != 0, 1, 0)
+      tmp <- diag(tmp[, temp_ind]) <- rep(0, n_var/2)
+      return(tmp)
     })
     l_adj <- Map('-', ref_adj_mats, tmp_adj_mats)
     lapply(l_adj, function(y){as.matrix(y)})
   })
-  ## path estimates
+  #--- Difference/bias path estimates
   l_diff_ests <- lapply(l_res, function(x){
-    l_est<- Map('-', ref_path_est_mats, x$path_est_mats)
+    l_est <- Map('-', ref_path_est_mats, x$path_est_mats)
     lapply(l_est, function(y){as.matrix(y)})
   })
 
+  
+  #--- Density
+  l_diff_dens_temp <- lapply(l_res, function(x){
+    tmp_denstemp <- lapply(x$path_est_mats, function(y){
+      abs_sum(x[, temp_ind])
+    })
+    Map('-', ref_dens_temp, tmp_denstemp)
+  })
+  
+  l_diff_dens_cont <- lapply(l_res, function(x){
+    tmp_denscont <- lapply(x$path_est_mats, function(y){
+      abs_sum(x[, cont_ind])
+    })
+    Map('-', ref_dens_cont, tmp_denstemp)
+  })
+  
   #--- Compare Fits
   l_diff_fit <- lapply(l_res, function(x){
     return(ref_fit_ind - x$fit[names(x$fit) %in% fit_ind_names])
   })
   
+  
   #--- Compare centrality
+  # compute outstrength
+  l_cent <- lapply(l_res, function(x){
+    tmp_outstrength <- lapply(x$path_est_mats, function(y){
+      colSums(abs(y))
+    })
+  })
+  
+  # compute difference
   l_diff_cent <- lapply(l_res, function(x){
     tmp_outstrength <- lapply(x$path_est_mats, function(y){
       colSums(abs(y))
@@ -188,12 +285,38 @@ multiverse.compare.individual <- function(l_res,
     Map('-', ref_outstrength, tmp_outstrength)
   })
   
+  ## binary: most central node the same?
+  # split by temporal and contemporaneous
+  central_node_identical <- list()
+  
+  for(i in seq_along(l_cent)){
+    max_temp_ref <- which.max(ref_outstrength[[i]][temp_ind])
+    max_temp_mv <- which.max(l_cent[[i]][temp_ind])
+    max_cont_ref <- which.max(ref_outstrength[[i]][cont_ind])
+    max_cont_mv <- which.max(l_cent[[i]][cont_ind])
+    central_node_identical[[i]] <- list()
+    central_node_identical[[i]]$temp_identical <- max_temp_ref == max_temp_mv
+    central_node_identical[[i]]$cont_identical <- max_cont_ref == max_cont_mv
+  }
+  
+  
+  ########################
   #--- Aggregate
+  ########################
   # First aggregate by taking mean for each edge across individuals
   # then summarize this again
   # split by averaging over all nonzero differences, or all differences
   
-  # Adjacency matrix
+  #--- Nondirected adjacency
+  mean_diff_nondir_adj <- lapply(l_diff_nondir_adj, function(x){
+    l_tmp <- list()
+    l_tmp$nondir_adj_sum_mat_i <- apply(simplify2array(x), 1:2, abs_sum)
+    l_tmp$nondir_adj_sum_sum_i <- sum(l_tmp$nondir_adj_sum_mat)
+    l_tmp$nondir_adj_sum_mean_i <- mean(l_tmp$nondir_adj_sum_mat)
+    return(l_tmp)
+  })
+  
+  #--- Adjacency matrix
   mean_diff_adj <- lapply(l_diff_adj, function(x){
     l_tmp <- list()
     l_tmp$adj_sum_mat_i <- apply(simplify2array(x), 1:2, abs_sum)
@@ -203,7 +326,7 @@ multiverse.compare.individual <- function(l_res,
   })
   
   
-  # Mean differences of edges
+  #--- Mean differences of edges
   mean_diff_ests <- lapply(l_diff_ests, function(x){
     l_tmp <- list()
     mean_mat <- apply(simplify2array(x), 1:2, mean)
@@ -213,8 +336,13 @@ multiverse.compare.individual <- function(l_res,
     l_tmp$med_diff_edge_i <- stats::median(abs(mean_mat))
     return(l_tmp)
   })
+  
+  #--- Densities
+  mean_diff_dens_temp <- sapply(l_diff_dens_temp, mean)
+  mean_diff_dens_cont <- sapply(l_diff_dens_cont, mean)
+  
     
-  # Fits 
+  #--- Fits 
   mean_diff_fits <- lapply(l_diff_fit, function(x){
     l_tmp <- list()
     l_tmp$mean_diff_fit_i <- apply(x, 2, abs_mean)
@@ -223,7 +351,8 @@ multiverse.compare.individual <- function(l_res,
   })
   
   
-  # Centrality
+  #--- Centrality
+  # difference across all centrality values
   mean_diff_cent <- lapply(l_diff_cent, function(x){
     l_tmp <- list()
     diff_cent <- rowSums(simplify2array(x))
@@ -232,20 +361,33 @@ multiverse.compare.individual <- function(l_res,
     return(l_tmp)
   })
   
+  # central node identical
+  sum_temp_central_identical <- sum(sapply(central_node_identical, function(x) x$temp_identical))
+  sum_cont_central_identical <- sum(sapply(central_node_identical, function(x) x$cont_identical))
+
   
-  
+
   l_out <- tibble(
-    n_ind_test = n_ind,
+    l_implausible_i = l_implausible,
+    sum_implausible_i = sum_implausible,
+    l_diff_nondir_adj_i = l_diff_nondir_adj,
     l_diff_adj_i = l_diff_adj,
     l_diff_ests_i = l_diff_ests,
     l_diff_fit_i = l_diff_fit,
     l_diff_cent_i = l_diff_cent,
+    central_node_identical_i = central_node_identical,
+    mean_diff_nondir_adj_i = mean_diff_nondir_adj,
     mean_diff_adj_i = mean_diff_adj,
     mean_diff_ests_i = mean_diff_ests,
     mean_diff_cent_i = mean_diff_cent,
+    mean_diff_dens_temp_i = mean_diff_dens_temp,
+    mean_diff_dens_cont_i = mean_diff_dens_cont,
+    sum_temp_central_identical_i = sum_temp_central_identical,
+    sum_cont_central_identical_i = sum_cont_central_identical,
     mean_diff_fit_i = mean_diff_fits
   ) %>% 
-    tidyr::unnest_wider(c(mean_diff_adj_i,
+    tidyr::unnest_wider(c(mean_diff_nondir_adj_i,
+                          mean_diff_adj_i,
                           mean_diff_ests_i, 
                           mean_diff_cent_i,
                           mean_diff_fit_i))
@@ -258,10 +400,11 @@ multiverse.compare.individual <- function(l_res,
 
 
 
+
 # From perturbr internal functions ----------------------------------------
 # https://github.com/cran/perturbR/blob/master/R/vi.dist.R
 vi.dist <-
-  function(cl1,cl2,parts=FALSE, base=2){ # wenn parts=TRUE, werden die Komponenten der VI ebenfalls berechnet
+  function(cl1,cl2,parts=FALSE, base=2){ 
     if(length(cl1) != length(cl2)) stop("cl1 and cl2 must have same length")
     
     # entropy 
@@ -331,3 +474,29 @@ abs_med <- function(x){
 abs_sum <- function(x){
   sum(abs(x))
 }
+
+
+nondirect_adjacency <- function(adj_mat) {
+  # Number of ariables
+  n_adj_vars <- nrow(adj_mat)
+  
+  # Initialize symmetrical matrix with 0s
+  sym_matrix <- matrix(0, nrow = n_adj_vars, ncol = n_adj_vars)
+  
+  # Iterate through each cell of the original matrix
+  for (i in 1:n_adj_vars) {
+    for (j in 1:n_adj_vars) {
+      # If there is any effect (1) in either direction, update the symmetrical matrix
+      if (n_adj_vars[i, j] == 1 || n_adj_vars[j, i] == 1) {
+        sym_matrix[i, j] <- 1
+        sym_matrix[j, i] <- 1
+      }
+    }
+  }
+
+  return(sym_matrix)
+}
+
+
+
+
