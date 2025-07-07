@@ -1,8 +1,9 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
-NOTE: THIS GITHUB PAGE IS FOR DEVELOPMENT AND TESTING. TAKE ALL RESULTS AS CAUTIONARY AS THERE IS NO GUARANTEE THEY HAVE BEEN TESTED AND PERFORM WELL. 
+NOTE: This forked version of GIMME was used for a preprint on multiverse analyses. In this fork, we enabled a change of fit index cutoffs for model fitting, which is not available in the "official" GIMME. 
+The associated repository for the preprint can be found [here](https://github.com/bsiepe/network-multiverse).
+This repository is not actively maintained. 
 
-PLEASE USE CRAN VERSION
 
 **Group Iterative Multiple Model Estimation (GIMME)**
 =====================================================
